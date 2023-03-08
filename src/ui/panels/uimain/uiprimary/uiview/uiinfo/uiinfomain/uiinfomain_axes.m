@@ -3,7 +3,7 @@ classdef uiinfomain_axes < TComponent
         Type = 'axes'
     end
     properties (SetAccess = immutable)
-        rc
+        rc; ln
         cm
     end
 
@@ -36,9 +36,15 @@ classdef uiinfomain_axes < TComponent
                 set(obj.rc, ...
                     'Position', [round(cp) - 0.5 1 1], ...
                     'Visible', 'on')
+                set(obj.ln, ...
+                    'XData', round(cp(1))*[1 1], ...
+                    'YData', round(cp(2)) + 0.5*[-1 1])
             else
                 set(obj.rc, ...
                     'Visible', 'off')
+                set(obj.ln, ...
+                    'XData', [], ...
+                    'YData', [])
             end
         end
         function exitFcn(obj)
@@ -46,7 +52,7 @@ classdef uiinfomain_axes < TComponent
         end
         
         function mouseScroll(obj)            
-            sz = obj.Data.cnfg.size;
+            sz = obj.Data.cnfg.size([2 1]);
             cp = obj.CurrentPosition;
 
             if all(cp > 0.5 & cp < sz + 0.5)
@@ -85,7 +91,7 @@ classdef uiinfomain_axes < TComponent
                 'Position', get(obj.Window, 'CurrentPoint'))
         end
         function mouseAxesClickMiddle(obj)
-            sz = obj.Data.cnfg.size;
+            sz = obj.Data.cnfg.size([2 1]);
             cp = obj.CurrentPosition;
 
             if all(cp > 0.5 & cp < sz + 0.5)
@@ -161,6 +167,15 @@ classdef uiinfomain_axes < TComponent
                 'Position', [0 0 1 1], ...
                 ... Interactivity
                 'Visible', 'off', ...
+                ... Callback Execution Control
+                'PickableParts', 'none');
+            obj.ln = line(obj.Handle, ...
+                ... Line
+                'Color', [128 128 128]/256, ...
+                'AlignVertexCenters', 'on', ...
+                ... Data
+                'XData', [], ...
+                'YData', [], ... 
                 ... Callback Execution Control
                 'PickableParts', 'none');
             
