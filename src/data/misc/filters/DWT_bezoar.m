@@ -48,21 +48,22 @@ classdef DWT_bezoar < TFilter
                 f_high = max(pseudofreqs);
             end
             
-            [~, Ilow] = min(abs(pseudofreqs - f_low));
-            [~, Ihigh] = min(abs(pseudofreqs - f_high));
-            flowval = pseudofreqs(Ilow);
-            fhighval = pseudofreqs(Ihigh);
+            [~, I_low] = min(abs(pseudofreqs - f_low));
+            [~, I_high] = min(abs(pseudofreqs - f_high));
+            f_low_val = pseudofreqs(I_low);
+            f_high_val = pseudofreqs(I_high);
                        
             % Set filter properties
-            obj.parameterValues(1) = flowval.*60; % convert Hz to cpm
-            obj.parameterValues(2) = fhighval.*60; % convert Hz to cpm
+            obj.parameterValues(1) = f_low_val.*60; % convert Hz to cpm
+            obj.parameterValues(2) = f_high_val.*60; % convert Hz to cpm
             
-            obj.elim_freq = [reverselvl(1:Ilow-1), reverselvl(Ihigh+1:end)];
+            obj.elim_freq = [reverselvl(1:I_low-1), reverselvl(I_high+1:end)];
             obj.f = p.frequency;
             
             obj.description = [ ...
                 '<html>' ...
                 '<b>Discrete Wavelet Denoising</b><br/>' ...
+                '<i>MATLAB Wavelet Toolbox</i><br/>' ...
                 '&emsp ' ...
                 obj.parameterValues(1) ' cpm lower bound <br/>' ...
                 '&emsp ' ...
