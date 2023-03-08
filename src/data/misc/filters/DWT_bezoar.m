@@ -2,6 +2,7 @@ classdef DWT_bezoar < TFilter
     properties (Constant)
         name                = 'DWT'
         type                = 'single'
+        col_wise            = true
         parameterNames      = ["Lower Bound", "Upper Bound"]
         parameterUnits      = ["cpm", "cpm"]
         parameterDefaults   = [0.02, 12]
@@ -17,12 +18,12 @@ classdef DWT_bezoar < TFilter
         function data = filter(obj, data)
             
             %dwt of data in rows.
-            dec = mdwtdec('r',data,obj.levels,obj.wavelet);
+            dec = mdwtdec('r',data',obj.levels,obj.wavelet);
             %zero out the coefficients according to the levels (pseudofreqs) we don't
             %want to keep
             DEC2 = chgwdeccfs(dec,'cd',0,obj.elim_freq);
             %reconstruct the waveforms based on filtered dwt coeffs
-            data = mdwtrec(DEC2);        
+            data = mdwtrec(DEC2)';        
         end
         function p = validateProperties(obj, p)
 
@@ -34,7 +35,7 @@ classdef DWT_bezoar < TFilter
             % scales are on dyadic grid (in powers of 2)
             %large level --> large scale --> low pseudofreq
             bandpass = [obj.parameterValues(1), obj.parameterValues(2)];
-            f_low = bandpass(1); f_high = bandpass(2);
+            f_low = bandpass(1)./60; f_high = bandpass(2)./60;  % convert cpm to Hz
             
             pseudofreqs = scal2frq(2.^[1:obj.levels], obj.wavelet, 1/p.frequency);
             pseudofreqs = fliplr(pseudofreqs); %flip the list so it is easier to work with
@@ -53,8 +54,8 @@ classdef DWT_bezoar < TFilter
             fhighval = pseudofreqs(Ihigh);
                        
             % Set filter properties
-            obj.parameterValues(1) = flowval;
-            obj.parameterValues(2) = fhighval;
+            obj.parameterValues(1) = flowval.*60; % convert Hz to cpm
+            obj.parameterValues(2) = fhighval.*60; % convert Hz to cpm
             
             obj.elim_freq = [reverselvl(1:Ilow-1), reverselvl(Ihigh+1:end)];
             obj.f = p.frequency;
@@ -65,7 +66,7 @@ classdef DWT_bezoar < TFilter
                 '&emsp ' ...
                 obj.parameterValues(1) ' cpm lower bound <br/>' ...
                 '&emsp ' ...
-                obj.parameterValues(1) ' cpm upper bound <br/>' ...
+                obj.parameterValues(2) ' cpm upper bound <br/>' ...
                 '&emsp ' ...
                 obj.wavelet 'wavelet' ...
                 '</html>'];
