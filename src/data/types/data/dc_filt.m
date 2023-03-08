@@ -38,11 +38,35 @@
                             '1 of ' ...
                             num2str(nc) ' channels']);
                     p = f(i).validateProperties(p);
-
+                                        
                     temp = f(i).filter(d(:, 1));
                     temp = repmat(temp, 1, nc);
+                    nc_remaining = nc;
+                    
+                    if isprop(f(i), 'col_wise')
+                        if f(i).col_wise
+                                                       
+                            if h.UserData
+                                waitbar(1, h, 'Cancelling import...')
+                                pause(0.5)
+                                close(h)
+                                return
+                            end
 
-                    for j = 2:nc
+                            waitbar((nc-1)/nc, h, ...
+                                ['Filtering: ' ...
+                                    num2str(i) ' of ' ...
+                                    num2str(nf) ' filters, ', ...
+                                    num2str(nc-1) ' of ' ...
+                                    num2str(nc) ' channels'])
+
+                            temp = f(i).filter(d);
+                            nc_remaining = 0;
+                            
+                        end
+                    end
+                    
+                    for j = 2:nc_remaining
                         if h.UserData
                             waitbar(1, h, 'Cancelling import...')
                             pause(0.5)
