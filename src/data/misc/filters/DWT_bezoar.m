@@ -1,0 +1,74 @@
+classdef DWT_bezoar < TFilter
+    properties (Constant)
+        name                = 'DWT'
+        type                = 'single'
+        parameterNames      = ["Lower Bound", "Upper Bound"]
+        parameterUnits      = ["cpm", "cpm"]
+        parameterDefaults   = [0.02, 12]
+    end
+    properties (Access = private)
+        elim_freq              double
+        wavelet                 string
+        levels                  double
+        f                       double
+    end
+    
+    methods
+        function data = filter(obj, data)
+            
+            %dwt of data in rows.
+            dec = mdwtdec('r',data,obj.levels,obj.wavelet);
+            %zero out the coefficients according to the levels (pseudofreqs) we don't
+            %want to keep
+            DEC2 = chgwdeccfs(dec,'cd',0,obj.elim_freq);
+            %reconstruct the waveforms based on filtered dwt coeffs
+            data = mdwtrec(DEC2);        
+        end
+        function p = validateProperties(obj, p)
+
+            obj.wavelet = 'db4';
+            
+            obj.levels = round(log2(p.samples));
+            
+            %figure out which scales (pseudofreqs we want to block)
+            % scales are on dyadic grid (in powers of 2)
+            %large level --> large scale --> low pseudofreq
+            bandpass = [obj.parameterValues(1), obj.parameterValues(2)];
+            f_low = bandpass(1); f_high = bandpass(2);
+            
+            pseudofreqs = scal2frq(2.^[1:obj.levels], obj.wavelet, 1/p.frequency);
+            pseudofreqs = fliplr(pseudofreqs); %flip the list so it is easier to work with
+            reverselvl = fliplr(1:obj.levels); %reversed list of levels
+            if f_low < 0
+                f_low = min(pseudofreqs);
+            end
+            
+            if f_high < 0
+                f_high = max(pseudofreqs);
+            end
+            
+            [~, Ilow] = min(abs(pseudofreqs - f_low));
+            [~, Ihigh] = min(abs(pseudofreqs - f_high));
+            flowval = pseudofreqs(Ilow);
+            fhighval = pseudofreqs(Ihigh);
+                       
+            % Set filter properties
+            obj.parameterValues(1) = flowval;
+            obj.parameterValues(2) = fhighval;
+            
+            obj.elim_freq = [reverselvl(1:Ilow-1), reverselvl(Ihigh+1:end)];
+            obj.f = p.frequency;
+            
+            obj.description = [ ...
+                '<html>' ...
+                '<b>Discrete Wavelet Denoising</b><br/>' ...
+                '&emsp ' ...
+                obj.parameterValues(1) ' cpm lower bound <br/>' ...
+                '&emsp ' ...
+                obj.parameterValues(1) ' cpm upper bound <br/>' ...
+                '&emsp ' ...
+                obj.wavelet 'wavelet' ...
+                '</html>'];
+        end
+    end
+end
