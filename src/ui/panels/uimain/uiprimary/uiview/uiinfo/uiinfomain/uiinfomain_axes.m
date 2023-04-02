@@ -57,7 +57,7 @@ classdef uiinfomain_axes < TComponent
 
             if all(cp > 0.5 & cp < sz + 0.5)
                 cp = round(cp);
-                in = sub2ind(sz, cp(2), cp(1));
+                in = sub2ind(fliplr(sz), cp(2), cp(1));
 
                 at = obj.Data.uiprvw.at;
                 
@@ -96,7 +96,7 @@ classdef uiinfomain_axes < TComponent
 
             if all(cp > 0.5 & cp < sz + 0.5)
                 cp = round(cp);
-                in = sub2ind(sz, cp(2), cp(1));
+                in = sub2ind(fliplr(sz), cp(2), cp(1));
 
                 at = obj.Data.uiprvw.at;
                 at(in) = NaN;
